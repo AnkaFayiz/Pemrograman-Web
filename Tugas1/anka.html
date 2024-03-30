@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buah - buahan</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: aqua;
+        }
+        .button-container{
+            display: flex;
+            justify-content: center;
+        }
+        .search-container{
+            margin: 10px 10px;
+            display: flex;
+        }
+        button{
+            width: 120px;
+            height: 5vh;
+            border: none;
+            border-radius: 10px;
+        }
+        .search-container button:hover{
+            background-color: lime;
+        }
+        .search-container button {
+            background-color: aquamarine;
+            color: black;
+            margin-right: 10px;
+        }
+        .search-container input{
+            border-radius: 10px;
+            padding-left: 5px;
+        }
+        .filter-container input{
+            margin: 0px 10px 0px 10px;
+        }
+        .filter-container label {
+            margin: 0px 10px 0px 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container">
+        <div class="filter-container">
+            <label for="stok">Stok : </label>
+            <input type="range" id="stok-range" min="0" max="1500" value="1500">
+            <span id="stok-val">1500</span>
+        </div>
+        <div class="filter-container">
+            <label for="stok">Harga : </label>
+            <input type="range" id="harga" min="0" max="10000" value="10000">
+            <span id="harga-val">10000</span>
+        </div>
+        <div class="search-container">
+            <button type="button" id="search-button">Search</button>
+            <input type="text" id="search-input" style="display: none;" placeholder="Search...">
+        </div>
+    </div>
+    <table id="container">
+    </table>
+    <script>
+        const container = document.getElementById("container");
+        const searchButton = document.getElementById("search-button");
+        const searchInput = document.getElementById("search-input");
+        const stokRange = document.getElementById("stok-range");
+        const stokValue = document.getElementById("stok-val");
+        const hargaRange = document.getElementById("harga");
+        const hargaVal = document.getElementById("harga-val");
+
+        function createTableHeader() {
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `
+                <th>ID</th>
+                <th>Buah</th>
+                <th>Jenis</th>
+                <th>Stok</th>
+                <th>Harga</th>
+            `;
+            container.appendChild(headerRow);
+        }
+
+        function toggleSearchInput() {
+            if (searchInput.style.display === "none") {
+                searchInput.style.display = "block";
+            } else {
+                searchInput.style.display = "none";
+            }
+        }
+
+        searchButton.addEventListener('click', toggleSearchInput);
+
+        // Function for filtering items
+        function updateStok(){
+            stokValue.textContent = stokRange.value;
+            UpdateTable();
+        }
+
+        function updateHarga(){
+            hargaVal.textContent = hargaRange.value;
+            UpdateTable();
+        }
+
+        // Fetching data from json
+        fetch("buah.json")
+            .then(response => response.json())
+            .then(data => {
+                createTableHeader();
+
+                window.originalData = data;
+
+                data.forEach(item => {
+                    item.Jenis.forEach(jenisItem => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td style="background-color:lightgrey">${item.ID}</td>
+                            <td>${item.Buah}</td>
+                            <td>${jenisItem.Nama}</td>
+                            <td>${jenisItem.Stok}</td>
+                            <td>${jenisItem.Harga}</td>
+                        `;
+                        container.appendChild(row);
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+
+        function UpdateTable() {
+            const searchText = searchInput.value.toLowerCase();
+            const rows = container.getElementsByTagName('tr');
+            const stokFilterValue = parseInt(stokRange.value, 10);
+            const hargaFilterValue = parseInt(hargaRange.value, 10);
+
+            Array.from(rows).forEach((row, index) => {
+                if (index === 0) return;
+                
+                const cells = row.getElementsByTagName('td');
+                const [id, buah, jenis, stok, harga] = Array.from(cells).map(td => td.textContent.toLowerCase());
+                
+                const searchDisplay = id.includes(searchText) || buah.includes(searchText) || jenis.includes(searchText);
+                const stokDisplay = parseInt(stok, 10) <= stokFilterValue; 
+                const hargaDisplay = parseInt(harga, 10) <= hargaFilterValue; 
+
+                // Validate each value
+                if(searchDisplay && stokDisplay && hargaDisplay){
+                    row.style.display = '';
+                }else{
+                    row.style.display = 'none';
+                }
+            });
+            
+        }
+        searchInput.addEventListener('input', UpdateTable);
+        hargaRange.addEventListener('input', updateHarga);
+        stokRange.addEventListener('input', updateStok);
+
+    </script>
+</body>
+</html>
