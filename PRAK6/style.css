@@ -1,0 +1,13 @@
+#myChart {
+    width: 800px; 
+    height: 400px; 
+    margin: 20px auto; 
+    background-color: #f8f9fa; 
+    border: 1px solid #dee2e6;
+    padding: 15px; 
+    border-radius: 5px; 
+  }
+  
+  .chartjs-render-monitor { 
+    background-color: #fff; 
+  }
